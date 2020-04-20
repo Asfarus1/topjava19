@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.repository.jdbc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -34,8 +35,8 @@ public class JdbcMealRepository implements MealRepository {
         if (meal.isNew()) {
             Number id = insert.executeAndReturnKey(toParameters(meal, userId));
             meal.setId(id.intValue());
-        } else {
-            namedTemplate.update(UPDATE_QUERY, toParameters(meal, userId));
+        } else if (namedTemplate.update(UPDATE_QUERY, toParameters(meal, userId)) == 0) {
+            return null;
         }
         return meal;
     }
@@ -48,8 +49,9 @@ public class JdbcMealRepository implements MealRepository {
 
     @Override
     public Meal get(int id, int userId) {
-        return namedTemplate.getJdbcTemplate().queryForObject(
+        List<Meal> result = namedTemplate.getJdbcTemplate().query(
                 "SELECT * FROM meals WHERE id=? AND user_id=?", ROW_MAPPER, id, userId);
+        return DataAccessUtils.singleResult(result);
     }
 
     @Override
@@ -67,9 +69,9 @@ public class JdbcMealRepository implements MealRepository {
         return namedTemplate.query(SELECT_HALF_BETWEEN_QUERY, params, ROW_MAPPER);
     }
 
-    private static Map<String,Object> toParameters(Meal meal, int userId) {
+    private static Map<String, Object> toParameters(Meal meal, int userId) {
         ObjectMapper mapper = new ObjectMapper();
-        Map<String,Object> values = mapper.convertValue(meal, Map.class);
+        Map<String, Object> values = mapper.convertValue(meal, Map.class);
         values.put("user_id", userId);
         values.put("date_time", meal.getDateTime());
         return values;
