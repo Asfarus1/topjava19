@@ -1,12 +1,25 @@
 package ru.javawebinar.topjava.model;
 
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
+import javax.validation.Constraint;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+@Entity
+@Table(name = "meals" /*, uniqueConstraints = @UniqueConstraint(name = "meals_uniq_user_date_time_idx", columnNames = {"user","dateTime"})*/)
+@NamedQueries({
+        @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal m WHERE m.user.id=:userId AND m.id=:id"),
+        @NamedQuery(name = Meal.GET, query = "SELECT m FROM Meal m WHERE m.user.id=:userId AND m.id=:id"),
+        @NamedQuery(name = Meal.ALL_SORTED, query = "SELECT m FROM Meal m WHERE m.user.id=:userId ORDER BY m.dateTime DESC"),
+        @NamedQuery(name = Meal.BETWEEN_DATES_SORTED, query = "SELECT m FROM Meal m WHERE m.user.id=:userId AND m.dateTime>=:startDate AND m.dateTime<:endDate ORDER BY m.dateTime DESC"),
+})
 public class Meal extends AbstractBaseEntity {
+    public static final String DELETE = "Meal.delete";
+    public static final String GET = "Meal.GET";
+    public static final String ALL_SORTED = "Meal.allSorted";
+    public static final String BETWEEN_DATES_SORTED = "Meal.betweenDatesSorted";
+
     private LocalDateTime dateTime;
 
     private String description;
@@ -14,6 +27,7 @@ public class Meal extends AbstractBaseEntity {
     private int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userId")
     private User user;
 
     public Meal() {
@@ -30,6 +44,7 @@ public class Meal extends AbstractBaseEntity {
         this.calories = calories;
     }
 
+    @Column(columnDefinition = "timestamp default now()")
     public LocalDateTime getDateTime() {
         return dateTime;
     }
