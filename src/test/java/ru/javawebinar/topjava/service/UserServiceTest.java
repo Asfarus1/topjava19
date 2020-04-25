@@ -1,7 +1,10 @@
 package ru.javawebinar.topjava.service;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -12,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.UserRepository;
+import ru.javawebinar.topjava.rules.ClassDurationLogger;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.util.List;
@@ -26,13 +30,19 @@ import static ru.javawebinar.topjava.UserTestData.*;
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class UserServiceTest {
 
+    @ClassRule
+    public static final ClassDurationLogger classLogger = new ClassDurationLogger();
+    @Rule
+    public TestRule logger = classLogger.methodDurationLogger();
+
     @Autowired
     private UserService service;
     @Autowired
     private UserRepository repository;
 
+
     @Test
-    public void create() throws Exception {
+    public void create() {
         User newUser = getNew();
         User created = service.create(newUser);
         Integer newId = created.getId();

@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "meals" /*, uniqueConstraints = @UniqueConstraint(name = "meals_uniq_user_date_time_idx", columnNames = {"user","dateTime"})*/)
+@Table(name = "meals" , uniqueConstraints = {@UniqueConstraint(name = "meals_uniq_user_date_time_idx", columnNames = {"user_id","date_time"})})
 @NamedQueries({
         @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal m WHERE m.user.id=:userId AND m.id=:id"),
         @NamedQuery(name = Meal.GET, query = "SELECT m FROM Meal m WHERE m.user.id=:userId AND m.id=:id"),
@@ -20,6 +20,7 @@ public class Meal extends AbstractBaseEntity {
     public static final String ALL_SORTED = "Meal.allSorted";
     public static final String BETWEEN_DATES_SORTED = "Meal.betweenDatesSorted";
 
+    @Column(name = "date_time", columnDefinition = "TIMESTAMP", nullable = false)
     private LocalDateTime dateTime;
 
     private String description;
@@ -27,7 +28,7 @@ public class Meal extends AbstractBaseEntity {
     private int calories;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public Meal() {

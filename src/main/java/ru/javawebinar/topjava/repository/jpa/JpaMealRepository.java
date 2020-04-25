@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @Transactional(readOnly = true)
@@ -22,14 +23,15 @@ public class JpaMealRepository implements MealRepository {
     @Override
     @Transactional
     public Meal save(Meal meal, int userId) {
-        User user = em.find(User.class, userId);
+        User user = em.getReference(User.class, userId);
         meal.setUser(user);
         if (meal.isNew()) {
             em.persist(meal);
             return meal;
-        } else {
-            return em.merge(meal);
+        } else if (get(meal.getId(), userId) == null){
+            return null;
         }
+        return em.merge(meal);
     }
 
     @Override
@@ -59,7 +61,7 @@ public class JpaMealRepository implements MealRepository {
 
     @Override
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDate, LocalDateTime endDate, int userId) {
-        return em.createNamedQuery(Meal.ALL_SORTED)
+        return em.createNamedQuery(Meal.BETWEEN_DATES_SORTED)
                 .setParameter("userId", userId)
                 .setParameter("startDate", startDate)
                 .setParameter("endDate", endDate)
